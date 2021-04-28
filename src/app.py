@@ -1,26 +1,79 @@
-from PyQt5.QtWidgets import QApplication, QWidget
 import sys
+
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+
+
+WINDOW_SIZE = (800, 600)
+WINDOW_POS = (100, 100)
+WINDOW_TITLE = 'Test window'
+
+
+class MainWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.resize(*WINDOW_SIZE)
+        self.move(*WINDOW_POS)
+        self.setWindowTitle(WINDOW_TITLE)
+
+class Canvas(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        
+        self.fig = Figure()
+        self.ax = self.fig.add_subplot(111)
+        
+        self.canvas = FigureCanvas(self.fig)
+
+        layout = QGridLayout()
+        layout.addWidget(self.canvas)
+
+        self.setLayout(layout)
+        
+    def add_axes(self):
+        self.ax.plot([1, 2], [1, 2])
+
+class CanvasToolBar(QWidget):
+
+    def __init__(self, canvas):
+        super().__init__()
+
+        self.canvas = canvas
+
+        self.draw_random_point_button = QPushButton('draw', parent=self)
+
+        layout = QVBoxLayout()
+
+        layout.addWidget(self.draw_random_point_button)
+
+        self.setLayout(layout)
+
+        
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyle('Windows') # for memes
 
-    w = QWidget()
-    w.resize(800, 600)
-    w.move(100, 100)
-    w.setWindowTitle('Test window')
+    window = MainWindow()
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    ax.plot([1, 2], [1, 2])
+    main_layout = QHBoxLayout()
     
-    fc = FigureCanvas(fig)
-    fc.setParent(w)
+    canvas = Canvas()
+    toolbar = CanvasToolBar(canvas)
+
+    main_layout.addWidget(canvas)
+    main_layout.addWidget(toolbar)
     
-    w.show()
+    window.setLayout(main_layout)
+
+    canvas.add_axes()
+    
+    window.show()
     
     sys.exit(app.exec_())
     
