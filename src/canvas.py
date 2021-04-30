@@ -17,6 +17,7 @@ logger = get_logger(Path(__file__).name)
 
 CONTOUR_ZORDER = 1
 HISTORY_ZORDER = 5
+INIT_APPROX_ZORDER = 6
 
 
 class Canvas(QWidget):
@@ -27,6 +28,8 @@ class Canvas(QWidget):
         super().__init__()
 
         self.margin_coef = 0.05
+        self.num_levels = None
+        self.history_updated = False
         
         self.fig, self.ax = plt.subplots(1, 1)
         self.canvas = FigureCanvas(self.fig)
@@ -65,6 +68,7 @@ class Canvas(QWidget):
 
     def plot_quiver(self):
         logger.debug('Plotting quiver')
+        
         # The x and y coordinates of the arrow locations
         x, y = self.history[:-1, 0], self.history[:-1, 1]
         # The x and y direction components of the arrow vectors
@@ -72,6 +76,8 @@ class Canvas(QWidget):
         v = self.history[1:, 1] - self.history[:-1, 1]
 
         self.ax.quiver(x, y, u, v, scale_units='xy', angles='xy', scale=1, zorder=HISTORY_ZORDER)
+
+        self.ax.scatter(x[0], y[0], zorder=INIT_APPROX_ZORDER)
 
     def plot_contour(self):
         logger.debug('Plotting contour')
@@ -87,22 +93,30 @@ class Canvas(QWidget):
             for col_n in range(X.shape[1]):
                 Z[row_n][col_n] = self.function(X[row_n][col_n], Y[row_n][col_n])
 
-        Z_pos = 1+Z-np.min(Z)
+        Z_pos = 1 + Z-np.min(Z)
 
-        self.ax.contour(X, Y, Z_pos, levels=np.logspace(0, 2, 30), norm=LogNorm(),
-                        cmap=plt.cm.jet, alpha=0.5, zorder=CONTOUR_ZORDER)
+        c = self.ax.contour(X, Y, Z_pos, levels=np.logspace(0, 2, self.num_levels), norm=LogNorm(),
+                            cmap=plt.cm.jet, alpha=0.5, zorder=CONTOUR_ZORDER)
 
     def update_axes(self):
         logger.debug('Updating axes')
 
-        assert self.function
-        assert self.gradient
+        if any(map(lambda x: x is None, [self.function, self.gradient, self.history])):
+            logger.debug('Nothing to plot')
+            return
+
+        if self.history_updated:
+            x_lims, y_lims = self.compute_limits()
+            self.history_updated = False
+        else:
+            x_lims, y_lims = self.ax.get_xlim(), self.ax.get_ylim()
         
         self.ax.clear()
 
-        x_lims, y_lims = self.compute_limits()
         self.ax.set_xlim(*x_lims)
         self.ax.set_ylim(*y_lims)
+
+        self.ax.set_title('BFGS')
 
         self.plot_contour()
         self.plot_quiver()
@@ -110,15 +124,24 @@ class Canvas(QWidget):
         self.canvas.draw()
 
 
-    def update_history(self, history: np.array):
+    def update_history(self, history):
         logger.debug('Updating history')
+
+        history = np.array(history)
         
         assert len(history) > 1
         assert len(history.shape) == 2
         assert history.shape[1] == 2
         
         self.history = history
+        self.history_updated = True
 
     def update_function(self, func, grad):
         self.function = func
         self.gradient = grad
+
+    def update_num_levels(self, num_levels):
+        assert num_levels > 0
+        
+        self.num_levels = num_levels
+        self.update_axes()
