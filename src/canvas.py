@@ -88,13 +88,20 @@ class Canvas(QWidget):
 
         Z = np.empty_like(X)
 
+        max_Z = None
+
         for row_n in range(X.shape[0]):
             for col_n in range(X.shape[1]):
                 Z[row_n][col_n] = self.function(X[row_n][col_n], Y[row_n][col_n])
+                if not max_Z or Z[row_n][col_n] > max_Z:
+                    max_Z = Z[row_n][col_n]
 
-        Z_pos = 1 + Z-np.min(Z)
+        max_Z += 1 - np.min(Z)
+        Z_pos = 1 + Z - np.min(Z)
 
-        c = self.ax.contour(X, Y, Z_pos, levels=np.logspace(0, 2, self.num_levels), norm=LogNorm(),
+        max_z_order = np.ceil(np.log10(max_Z))
+
+        c = self.ax.contour(X, Y, Z_pos, levels=np.logspace(0, max_z_order, self.num_levels), norm=LogNorm(),
                             cmap=plt.cm.jet, alpha=0.5, zorder=CONTOUR_ZORDER)
 
     def update_axes(self):
