@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QWidget, QGridLayout
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from matplotlib.colors import LogNorm
 
 from pathlib import Path
 
@@ -12,6 +13,10 @@ from utils import get_logger
 
 
 logger = get_logger(Path(__file__).name)
+
+
+CONTOUR_ZORDER = 1
+HISTORY_ZORDER = 5
 
 
 class Canvas(QWidget):
@@ -26,6 +31,8 @@ class Canvas(QWidget):
         self.fig, self.ax = plt.subplots(1, 1)
         self.canvas = FigureCanvas(self.fig)
         self.history = np.array([])
+        self.function = None
+        self.gradient = None
 
         layout = QGridLayout()
         layout.addWidget(self.canvas)
@@ -33,6 +40,8 @@ class Canvas(QWidget):
         self.setLayout(layout)
 
     def compute_limits(self):
+        logger.debug('Computing limits')
+        
         min_x, min_y = self.history[0]
         max_x, max_y = self.history[0]
 
@@ -46,7 +55,13 @@ class Canvas(QWidget):
             elif y > max_y:
                 max_y = y
 
-        return (min_x, max_x), (min_y, max_y)
+        w, h = max_x - min_x, max_y - min_y
+        c = self.margin_coef
+        
+        x_lims = min_x - c * w, max_x + c * w
+        y_lims = min_y - c * h, max_y + c * h
+
+        return x_lims, y_lims
 
     def plot_quiver(self):
         logger.debug('Plotting quiver')
@@ -56,28 +71,46 @@ class Canvas(QWidget):
         u = self.history[1:, 0] - self.history[:-1, 0], 
         v = self.history[1:, 1] - self.history[:-1, 1]
 
-        self.ax.quiver(x, y, u, v, scale_units='xy', angles='xy', scale=1)
+        self.ax.quiver(x, y, u, v, scale_units='xy', angles='xy', scale=1, zorder=HISTORY_ZORDER)
+
+    def plot_contour(self):
+        logger.debug('Plotting contour')
+        
+        xs = np.linspace(*self.ax.get_xlim(), 50)
+        ys = np.linspace(*self.ax.get_ylim(), 50)
+
+        X, Y = np.meshgrid(xs, ys)
+
+        Z = np.empty_like(X)
+
+        for row_n in range(X.shape[0]):
+            for col_n in range(X.shape[1]):
+                Z[row_n][col_n] = self.function(X[row_n][col_n], Y[row_n][col_n])
+
+        Z_pos = 1+Z-np.min(Z)
+
+        self.ax.contour(X, Y, Z_pos, levels=np.logspace(0, 2, 30), norm=LogNorm(),
+                        cmap=plt.cm.jet, alpha=0.5, zorder=CONTOUR_ZORDER)
 
     def update_axes(self):
         logger.debug('Updating axes')
+
+        assert self.function
+        assert self.gradient
+        
         self.ax.clear()
 
-        self.plot_quiver()
-        (x_min, x_max), (y_min, y_max) = self.compute_limits()
-
-        w, h = x_max - x_min, y_max - y_min
-        c = self.margin_coef
-        
-        x_lims = x_min - c * w, x_max + c * w
-        y_lims = y_min - c * h, y_max + c * h
-
+        x_lims, y_lims = self.compute_limits()
         self.ax.set_xlim(*x_lims)
         self.ax.set_ylim(*y_lims)
+
+        self.plot_contour()
+        self.plot_quiver()
 
         self.canvas.draw()
 
 
-    def update_history(self, history: np.array, update_axes=False):
+    def update_history(self, history: np.array):
         logger.debug('Updating history')
         
         assert len(history) > 1
@@ -86,5 +119,6 @@ class Canvas(QWidget):
         
         self.history = history
 
-        if update_axes:
-            self.update_axes()
+    def update_function(self, func, grad):
+        self.function = func
+        self.gradient = grad
