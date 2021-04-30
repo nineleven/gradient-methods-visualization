@@ -99,10 +99,10 @@ class CanvasToolBar(QWidget):
         
         layout = QVBoxLayout()
 
-        layout.addWidget(self.num_levels_widget)
-        layout.addWidget(self.func_widget)
-        layout.addWidget(self.init_approx_widget)
-        layout.addWidget(self.btn_run)
+        layout.addWidget(self.num_levels_widget, alignment=Qt.AlignTop)
+        layout.addWidget(self.func_widget, alignment=Qt.AlignTop)
+        layout.addWidget(self.init_approx_widget, alignment=Qt.AlignTop)
+        layout.addWidget(self.btn_run, alignment=Qt.AlignTop)
 
         self.setLayout(layout)
 
