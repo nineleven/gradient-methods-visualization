@@ -29,7 +29,6 @@ class Canvas(QWidget):
 
         self.margin_coef = 0.05
         self.num_levels = None
-        self.history_updated = False
         
         self.fig, self.ax = plt.subplots(1, 1)
         self.canvas = FigureCanvas(self.fig)
@@ -105,14 +104,9 @@ class Canvas(QWidget):
             logger.debug('Nothing to plot')
             return
 
-        if self.history_updated:
-            x_lims, y_lims = self.compute_limits()
-            self.history_updated = False
-        else:
-            x_lims, y_lims = self.ax.get_xlim(), self.ax.get_ylim()
-        
         self.ax.clear()
 
+        x_lims, y_lims = self.compute_limits()
         self.ax.set_xlim(*x_lims)
         self.ax.set_ylim(*y_lims)
 
@@ -134,7 +128,6 @@ class Canvas(QWidget):
         assert history.shape[1] == 2
         
         self.history = history
-        self.history_updated = True
 
     def update_function(self, func, grad):
         self.function = func
