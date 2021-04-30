@@ -14,8 +14,11 @@ from utils import get_logger
 
 logger = get_logger(Path(__file__).name)
 
+NUM_X_TICKS = 50
+NUM_Y_TICKS = 50
 
-CONTOUR_ZORDER = 1
+GRADIENT_ZORDER = 1
+CONTOUR_ZORDER = 2
 HISTORY_ZORDER = 5
 INIT_APPROX_ZORDER = 6
 
@@ -78,13 +81,21 @@ class Canvas(QWidget):
 
         self.ax.scatter(x[0], y[0], zorder=INIT_APPROX_ZORDER)
 
-    def plot_contour(self):
-        logger.debug('Plotting contour')
-        
-        xs = np.linspace(*self.ax.get_xlim(), 50)
-        ys = np.linspace(*self.ax.get_ylim(), 50)
+    def plot_gradient(self, X, Y):
+        grad_X = np.empty_like(X)
+        grad_Y = np.empty_like(X)
 
-        X, Y = np.meshgrid(xs, ys)
+        for row_n in range(X.shape[0]):
+            for col_n in range(X.shape[1]):
+                grad_x, grad_y = self.gradient(X[row_n][col_n], Y[row_n][col_n])
+                grad_norm = (grad_x**2 + grad_y**2)**0.5
+                grad_X[row_n][col_n] = grad_x / grad_norm
+                grad_Y[row_n][col_n] = grad_y / grad_norm
+
+        self.ax.quiver(X, Y, grad_X, grad_Y, scale=50, width=3e-3, color='gray', alpha=0.5, zorder=GRADIENT_ZORDER)
+
+    def plot_contour(self, X, Y):
+        logger.debug('Plotting contour')
 
         Z = np.empty_like(X)
 
@@ -119,7 +130,12 @@ class Canvas(QWidget):
 
         self.ax.set_title('BFGS')
 
-        self.plot_contour()
+        xs = np.linspace(*self.ax.get_xlim(), NUM_X_TICKS)
+        ys = np.linspace(*self.ax.get_ylim(), NUM_Y_TICKS)
+        X, Y = np.meshgrid(xs, ys)
+
+        self.plot_gradient(X, Y)
+        self.plot_contour(X, Y)
         self.plot_quiver()
 
         self.canvas.draw()
