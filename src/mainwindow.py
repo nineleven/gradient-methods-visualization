@@ -12,7 +12,7 @@ logger = get_logger(Path(__file__).name)
 
 WINDOW_SIZE = (800, 600)
 WINDOW_POS = (100, 100)
-WINDOW_TITLE = 'Test window'
+WINDOW_TITLE = 'BFGS visualizer'
 
 
 class MainWindow(QWidget):
