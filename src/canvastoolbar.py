@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QLineEdit, QPushButton, QLabel, QSlider, \
      QVBoxLayout, QHBoxLayout, QMessageBox
-from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtCore import QRegExp, Qt
+from PyQt5.QtGui import QRegExpValidator, QDoubleValidator
+from PyQt5.QtCore import QRegExp, Qt, QLocale
 
 from pathlib import Path
 
@@ -9,6 +9,7 @@ import sympy
 
 from canvas import Canvas
 from utils import get_logger
+from bfgs import bfgs
 
 
 logger = get_logger(Path(__file__).name)
@@ -68,12 +69,13 @@ class CanvasToolBar(QWidget):
         
         self.func_widget.setLayout(func_layout)
 
-        self.init_approx_widget = QWidget()
-
         # initial approximation widget
+        self.init_approx_widget = QWidget()
+        
         self.lbl_x0 = QLabel('x0:')
 
-        init_approx_validator = QRegExpValidator(QRegExp('-?[0-9]+(\.[0-9]*)?'))
+        init_approx_validator = QDoubleValidator()
+        init_approx_validator.setLocale(QLocale(QLocale.English))
         
         self.led_x0 = QLineEdit()
         self.led_x0.setValidator(init_approx_validator)
@@ -93,6 +95,24 @@ class CanvasToolBar(QWidget):
         
         self.init_approx_widget.setLayout(init_approx_layout)
 
+        # precision widget
+        self.epsilon_widget = QWidget()
+        
+        self.lbl_epsilon = QLabel('epsilon:')
+        
+        epsilon_validator = QDoubleValidator(bottom=0)
+        epsilon_validator.setLocale(QLocale(QLocale.English))
+        
+        self.led_epsilon = QLineEdit()
+        self.led_epsilon.setValidator(epsilon_validator)
+        self.led_epsilon.setText('1e-3')
+        
+        epsilon_layout = QHBoxLayout()
+        epsilon_layout.addWidget(self.lbl_epsilon)
+        epsilon_layout.addWidget(self.led_epsilon)
+
+        self.epsilon_widget.setLayout(epsilon_layout)
+        
         # run button
         self.btn_run = QPushButton('run')
         self.btn_run.clicked.connect(self.btn_run_clicked)
@@ -102,6 +122,7 @@ class CanvasToolBar(QWidget):
         layout.addWidget(self.num_levels_widget, alignment=Qt.AlignTop)
         layout.addWidget(self.func_widget, alignment=Qt.AlignTop)
         layout.addWidget(self.init_approx_widget, alignment=Qt.AlignTop)
+        layout.addWidget(self.epsilon_widget, alignment=Qt.AlignTop)
         layout.addWidget(self.btn_run, alignment=Qt.AlignTop)
 
         self.setLayout(layout)
@@ -119,9 +140,9 @@ class CanvasToolBar(QWidget):
         try:
             func_sp = sympy.sympify(str(self.led_func.text()))
             
-            def func(x, y):
+            def func(x):
                 nonlocal func_sp
-                func_eval = func_sp.subs('x', x).subs('y', y).evalf()
+                func_eval = func_sp.subs('x', x[0]).subs('y', x[1]).evalf()
                 return float(func_eval)
 
             return func_sp, func
@@ -139,9 +160,9 @@ class CanvasToolBar(QWidget):
             grad_sp = sympy.Matrix([sympy.diff(func, 'x'),
                                     sympy.diff(func, 'y')])
 
-            def grad(x, y):
+            def grad(x):
                 nonlocal grad_sp
-                grad_eval = grad_sp.subs('x', x).subs('y', y).evalf()
+                grad_eval = grad_sp.subs('x', x[0]).subs('y', x[1]).evalf()
                 return list(map(float, grad_eval))
 
             return grad
@@ -156,10 +177,16 @@ class CanvasToolBar(QWidget):
         logger.debug('run button clicked')
         
         if not self.led_x0.text():
-            logger.debug('lineedit is empty')
+            logger.debug('missing initial approximation')
+            return
+
+        if not self.led_epsilon.text():
+            logger.debug('missing precision')
             return
 
         x0 = [float(self.led_x0.text()), float(self.led_y0.text())]
+
+        epsilon = float(self.led_epsilon.text())
 
         res = self.build_function()
         if not res:
@@ -170,9 +197,7 @@ class CanvasToolBar(QWidget):
         if not grad:
             return
 
-        x, y = x0
-        history = [[0, 0], [1, 5], [3, 4], [2, 2], [1, 1]]
-        history = [[x+u, y+v] for u, v in history]
+        _, history = bfgs(grad, x0, epsilon, return_history=True)
 
         self.canvas.update_history(history)
         self.canvas.update_function(func, grad)

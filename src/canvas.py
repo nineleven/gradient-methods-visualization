@@ -87,7 +87,8 @@ class Canvas(QWidget):
 
         for row_n in range(X.shape[0]):
             for col_n in range(X.shape[1]):
-                grad_x, grad_y = self.gradient(X[row_n][col_n], Y[row_n][col_n])
+                point = [X[row_n][col_n], Y[row_n][col_n]]
+                grad_x, grad_y = self.gradient(point)
                 grad_norm = (grad_x**2 + grad_y**2)**0.5
                 grad_X[row_n][col_n] = grad_x / grad_norm
                 grad_Y[row_n][col_n] = grad_y / grad_norm
@@ -103,7 +104,8 @@ class Canvas(QWidget):
 
         for row_n in range(X.shape[0]):
             for col_n in range(X.shape[1]):
-                Z[row_n][col_n] = self.function(X[row_n][col_n], Y[row_n][col_n])
+                point = [X[row_n][col_n], Y[row_n][col_n]]
+                Z[row_n][col_n] = self.function(point)
                 if not max_Z or Z[row_n][col_n] > max_Z:
                     max_Z = Z[row_n][col_n]
 

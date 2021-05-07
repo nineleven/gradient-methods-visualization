@@ -1,5 +1,7 @@
 import sys
 
+from functools import update_wrapper
+
 import logging
 
 
@@ -15,4 +17,15 @@ def get_logger(name):
     logger.addHandler(handler)
 
     return logger
+
     
+class CountCalls:
+    
+    def __init__(self, func):
+        update_wrapper(self, func)
+        self.func = func
+        self.n_calls = 0
+        
+    def __call__(self, *args, **kwargs):
+        self.n_calls += 1
+        return self.func(*args, **kwargs)
