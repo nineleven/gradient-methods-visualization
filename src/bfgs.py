@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils import CountCalls
+from .utils import CountCalls
 
 
 def __make_result_dict(*, x, n_iter, n_grad_calls, success):
@@ -15,11 +15,13 @@ def recalc_hess_inv(H, s, y):
 
 def __optimize(grad_f, x_0, epsilon, alpha):
     history = []
+
+    x_0 = np.array(x_0)
     
     H_inv = np.eye(len(x_0))
     grad_value = np.array(grad_f(x_0))
     
-    x = np.array(x_0)
+    x = x_0
     
     n_iter = 0
     
