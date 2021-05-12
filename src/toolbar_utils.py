@@ -3,17 +3,17 @@ import sympy
 from typing import Tuple, Callable, Sequence, Optional, List
 
 from pathlib import Path
-from utils import get_logger
 
+from utils import get_logger
 from errors import Error
 
 
 logger = get_logger(Path(__file__).name)
 
 
-def build_function(input_str) -> Tuple[Error,
-                                       Optional[sympy.core.function.Function],
-                                       Optional[Callable]]:
+def build_function(input_str: str) -> Tuple[Error,
+                                            Optional[sympy.core.function.Function],
+                                            Optional[Callable]]:
     logger.debug('Building function')
 
     if ',' in input_str:

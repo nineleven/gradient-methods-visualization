@@ -2,28 +2,30 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
+from typing import Any, Sequence
+
 import numpy as np
 
 from src.bfgs import bfgs
 
 
-def test_quadratic():
-    def grad(x):
+def test_quadratic() -> None:
+    def grad(x: np.ndarray) -> np.ndarray:
         return 2 * x
-    x0 = [1, 1]
+    x0 = np.array([1, 1])
     epsilon = 1e-5
     res = bfgs(grad, x0, epsilon)
-    x = res['x']
+    x = res['x'] # type: ignore
 
     assert np.linalg.norm(x) < 1e-3
 
 
-def test_ravine():
-    def grad(x):
-        return [2 * x[0], 120 * x[1]]
-    x0 = [-40, 80]
+def test_ravine() -> None:
+    def grad(x: np.ndarray) -> np.ndarray:
+        return np.array([2 * x[0], 120 * x[1]])
+    x0 = np.array([-40, 80])
     epsilon = 1e-5
     res = bfgs(grad, x0, epsilon)
-    x = res['x']
+    x = res['x'] # type: ignore
 
     assert np.linalg.norm(x) < 1e-3

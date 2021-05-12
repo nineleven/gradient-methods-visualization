@@ -5,10 +5,6 @@ from PyQt5.QtCore import Qt, QLocale
 
 from pathlib import Path
 
-import sympy
-
-from typing import Tuple, Callable, Sequence, Optional, List
-
 from canvas import Canvas
 from utils import get_logger
 from bfgs import bfgs

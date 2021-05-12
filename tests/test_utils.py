@@ -5,9 +5,9 @@ sys.path.append(str(Path(__file__).parent))
 from src.utils import CountCalls
 
 
-def test_countcalls_loop():
+def test_countcalls_loop() -> None:
     @CountCalls
-    def f():
+    def f() -> float:
         return 2 + 2
 
     for i in range(10):
@@ -16,9 +16,9 @@ def test_countcalls_loop():
     assert f.n_calls == 10
 
 
-def test_countcalls_args():
+def test_countcalls_args() -> None:
     @CountCalls
-    def f(a, b=4):
+    def f(a: float, b: float=4) -> float:
         return a + b
 
     for i in range(10):
