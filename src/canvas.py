@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QGridLayout
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg \
+    import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
 from matplotlib.colors import LogNorm
 
 from pathlib import Path
@@ -74,10 +74,11 @@ class Canvas(QWidget):
         # The x and y coordinates of the arrow locations
         x, y = self.history[:-1, 0], self.history[:-1, 1]
         # The x and y direction components of the arrow vectors
-        u = self.history[1:, 0] - self.history[:-1, 0], 
+        u = self.history[1:, 0] - self.history[:-1, 0],
         v = self.history[1:, 1] - self.history[:-1, 1]
 
-        self.ax.quiver(x, y, u, v, scale_units='xy', angles='xy', scale=1, zorder=HISTORY_ZORDER)
+        self.ax.quiver(x, y, u, v, scale_units='xy',
+                       angles='xy', scale=1, zorder=HISTORY_ZORDER)
 
         self.ax.scatter(x[0], y[0], zorder=INIT_APPROX_ZORDER)
 
@@ -93,7 +94,8 @@ class Canvas(QWidget):
                 grad_X[row_n][col_n] = grad_x / grad_norm
                 grad_Y[row_n][col_n] = grad_y / grad_norm
 
-        self.ax.quiver(X, Y, grad_X, grad_Y, scale=50, width=3e-3, color='gray', alpha=0.5, zorder=GRADIENT_ZORDER)
+        self.ax.quiver(X, Y, grad_X, grad_Y, scale=50, width=3e-3,
+                       color='gray', alpha=0.5, zorder=GRADIENT_ZORDER)
 
     def plot_contour(self, X, Y):
         logger.debug('Plotting contour')
@@ -114,8 +116,8 @@ class Canvas(QWidget):
 
         max_z_order = np.ceil(np.log10(max_Z))
 
-        c = self.ax.contour(X, Y, Z_pos, levels=np.logspace(0, max_z_order, self.num_levels), norm=LogNorm(),
-                            cmap=plt.cm.jet, alpha=0.5, zorder=CONTOUR_ZORDER)
+        self.ax.contour(X, Y, Z_pos, levels=np.logspace(0, max_z_order, self.num_levels),
+                        norm=LogNorm(), cmap=plt.cm.jet, alpha=0.5, zorder=CONTOUR_ZORDER)
 
     def update_axes(self):
         logger.debug('Updating axes')
@@ -141,7 +143,6 @@ class Canvas(QWidget):
         self.plot_quiver()
 
         self.canvas.draw()
-
 
     def update_history(self, history):
         logger.debug('Updating history')

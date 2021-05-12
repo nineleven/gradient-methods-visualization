@@ -1,12 +1,17 @@
 import sys
-import traceback
 
 from PyQt5.QtWidgets import QApplication
 
 from mainwindow import MainWindow
 
+from types import TracebackType
 
-def except_hook(cls, exception, traceback):
+from typing import Any, Type
+
+
+def except_hook(cls: Type[BaseException],
+                exception: BaseException,
+                traceback: TracebackType) -> Any:
     sys.__excepthook__(cls, exception, traceback)
 
 
@@ -14,7 +19,6 @@ if __name__ == '__main__':
     sys.excepthook = except_hook
     
     app = QApplication(sys.argv)
-    app.setStyle('Windows') # for memes
 
     window = MainWindow()
     window.show()

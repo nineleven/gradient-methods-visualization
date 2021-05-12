@@ -1,11 +1,12 @@
 import sys
 
 from functools import update_wrapper
+from typing import Any, Callable
 
 import logging
 
 
-def get_logger(name):
+def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
 
     logger.setLevel(logging.DEBUG)
@@ -21,11 +22,11 @@ def get_logger(name):
     
 class CountCalls:
     
-    def __init__(self, func):
+    def __init__(self, func: Callable) -> None:
         update_wrapper(self, func)
         self.func = func
         self.n_calls = 0
         
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         self.n_calls += 1
         return self.func(*args, **kwargs)

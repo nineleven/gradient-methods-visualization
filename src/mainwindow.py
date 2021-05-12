@@ -17,7 +17,7 @@ WINDOW_TITLE = 'BFGS visualizer'
 
 class MainWindow(QWidget):
 
-    def __init__(self):
+    def __init__(self) -> None:
         logger.debug('Creating MainWindow object')
         
         super().__init__()

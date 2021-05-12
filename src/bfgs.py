@@ -1,17 +1,19 @@
 import numpy as np
 
-from .utils import CountCalls
+from utils import CountCalls
 
 
 def __make_result_dict(*, x, n_iter, n_grad_calls, success):
-    return dict(x=x, n_iter=n_iter, 
+    return dict(x=x, n_iter=n_iter,
                 n_grad_calls=n_grad_calls,
                 success=success)
 
+
 def recalc_hess_inv(H, s, y):
-    ro = 1 / y.T.dot(s)
-    I = np.eye(H.shape[0])
-    return (I - ro*s.dot(y.T)).dot(H).dot(I - ro*y.dot(s.T)) + ro*s.dot(s.T)
+    rho = 1 / y.T.dot(s)
+    eye = np.eye(H.shape[0])
+    return (eye - rho * s.dot(y.T)).dot(H).dot(eye - rho * y.dot(s.T)) + rho * s.dot(s.T)
+
 
 def __optimize(grad_f, x_0, epsilon, alpha):
     history = []
@@ -46,6 +48,7 @@ def __optimize(grad_f, x_0, epsilon, alpha):
         
         n_iter += 1
 
+
 def bfgs(grad_f, x_0, epsilon, alpha=1, return_history=False):
     
     @CountCalls
@@ -55,9 +58,9 @@ def bfgs(grad_f, x_0, epsilon, alpha=1, return_history=False):
     history = __optimize(grad_f_wrapper, x_0, epsilon, alpha)
         
     result_dict = __make_result_dict(
-        x=history[-1], 
-        n_iter=len(history)-1, 
-        n_grad_calls=grad_f_wrapper.n_calls, 
+        x=history[-1],
+        n_iter=len(history) - 1,
+        n_grad_calls=grad_f_wrapper.n_calls,
         success=True
     )
 
@@ -65,4 +68,3 @@ def bfgs(grad_f, x_0, epsilon, alpha=1, return_history=False):
         return result_dict, history
 
     return result_dict
-        
