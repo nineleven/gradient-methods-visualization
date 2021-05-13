@@ -16,6 +16,9 @@ def except_hook(cls: Type[BaseException],
 
 
 if __name__ == '__main__':
+    '''
+    making qt output errors to stdout
+    '''
     sys.excepthook = except_hook
     
     app = QApplication(sys.argv)

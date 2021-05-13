@@ -8,8 +8,8 @@ from pathlib import Path
 from canvas import Canvas
 from utils import get_logger
 from bfgs import bfgs
-from toolbar_utils import build_function, build_gradient, get_error_message
-from errors import Error
+from toolbar_utils import build_function, build_gradient
+from errors import Error, get_error_message
 
 
 logger = get_logger(Path(__file__).name)

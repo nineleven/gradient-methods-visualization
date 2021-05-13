@@ -24,7 +24,8 @@ CONTOUR_ZORDER = 2
 HISTORY_ZORDER = 5
 INIT_APPROX_ZORDER = 6
 
-
+DEFAULT_MARGIN_COEF = 0.05
+DEFAULT_NUM_LEVELS = 10
 
 
 class Canvas(QWidget):
@@ -34,12 +35,14 @@ class Canvas(QWidget):
         
         super().__init__()
 
-        self.margin_coef = 0.05
-        self.num_levels = 10
+        self.margin_coef = DEFAULT_MARGIN_COEF # coeffitient, used to determine the limits of axes
+        self.num_levels = DEFAULT_NUM_LEVELS # number of contour lines
         
         self.fig, self.ax = plt.subplots(1, 1)
         self.canvas = FigureCanvas(self.fig)
+        
         self.history = np.array([])
+        
         self.function: Optional[Callable[[Sequence[float]], float]] = None
         self.gradient: Optional[Callable[[Sequence[float]], List[float]]] = None
 
@@ -49,7 +52,20 @@ class Canvas(QWidget):
         self.setLayout(layout)
 
     def compute_limits(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        '''
+        Computes axes limits as
+        min - margin_coef * (max - min), max + margin_coef * (max - min)
+        along each axis, where min and max values are taken from current history
+
+        Returns
+        -------
+        Tuple[Tuple[float, float], Tuple[float, float]]
+            x and y axes limits respectively
+        '''
+        
         logger.debug('Computing limits')
+
+        assert self.history is not None
         
         min_x, min_y = self.history[0]
         max_x, max_y = self.history[0]
@@ -73,6 +89,10 @@ class Canvas(QWidget):
         return x_lims, y_lims
 
     def plot_quiver(self) -> None:
+        '''
+        Plots current history as a sequence of arrows
+        '''
+        
         logger.debug('Plotting quiver')
         
         # The x and y coordinates of the arrow locations
@@ -87,6 +107,18 @@ class Canvas(QWidget):
         self.ax.scatter(x[0], y[0], zorder=INIT_APPROX_ZORDER)
 
     def plot_gradient(self, X: np.ndarray, Y: np.ndarray) -> None:
+        '''
+        Plots gradient field as a field of arrows on a given meshgrid
+
+        Parameters
+        ----------
+        X : np.ndarray
+            x values of the arrow grid
+        Y : np.ndarray
+            y values of the arrow grid
+        '''
+
+        logger.debug('Plotting gradient')
 
         assert self.gradient is not None
         
@@ -107,6 +139,17 @@ class Canvas(QWidget):
                        color='gray', alpha=0.5, zorder=GRADIENT_ZORDER)
 
     def plot_contour(self, X: np.ndarray, Y: np.ndarray) -> None:
+        '''
+        Plots contour lines of the objective function using a given meshgrid
+
+        Parameters
+        ----------
+        X : np.ndarray
+            x values of the grid
+        Y : np.ndarray
+            y values of the grid
+        '''
+        
         logger.debug('Plotting contour')
 
         assert self.function is not None
@@ -132,6 +175,10 @@ class Canvas(QWidget):
                         norm=LogNorm(), cmap=plt.cm.jet, alpha=0.5, zorder=CONTOUR_ZORDER)
 
     def update_axes(self) -> None:
+        '''
+        Repaints current axes
+        '''
+        
         logger.debug('Updating axes')
 
         if any(map(lambda x: x is None, [self.function, self.gradient, self.history])):
@@ -157,9 +204,19 @@ class Canvas(QWidget):
         self.plot_contour(X, Y)
         self.plot_quiver()
 
+        logger.debug('Drawing on canvas')
         self.canvas.draw()
 
     def update_history(self, history: Sequence) -> None:
+        '''
+        A setter function for the iteration history of the method
+
+        Parameters
+        ----------
+        history : Sequence
+            A new history
+        '''
+        
         logger.debug('Updating history')
 
         history_np = np.array(history)
@@ -172,10 +229,30 @@ class Canvas(QWidget):
 
     def update_function(self, func: Callable[[Sequence[float]], float],
                         grad: Callable[[Sequence[float]], List[float]]) -> None:
+        '''
+        A setter function for the objective function and it's gradient
+
+        Parameters
+        ----------
+        func : Callable[[Sequence[float]], float]
+            Function
+        grad : Callable[[Sequence[float]], List[float]]
+            Gradient
+        '''
+        
         self.function = func
         self.gradient = grad
 
     def update_num_levels(self, num_levels: int) -> None:
+        '''
+        A setter function for the number of contour lines
+
+        Parameters
+        ----------
+        num_levels : int
+            Number of lines
+        '''
+        
         assert num_levels > 0
         
         self.num_levels = num_levels

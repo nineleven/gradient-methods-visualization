@@ -7,6 +7,21 @@ import logging
 
 
 def get_logger(name: str) -> logging.Logger:
+    '''
+    Utility function used in each module to
+    initialize a logger
+
+    Parameters
+    ----------
+    name : str
+        Name of the logger (usually, the name of the module)
+
+    Returns
+    -------
+    logging.Logger
+        Logger
+    '''
+    
     logger = logging.getLogger(name)
 
     logger.setLevel(logging.DEBUG)
@@ -21,6 +36,9 @@ def get_logger(name: str) -> logging.Logger:
 
     
 class CountCalls:
+    '''
+    Decorator class, that counts the number of calls to the decorated function
+    '''
     
     def __init__(self, func: Callable) -> None:
         update_wrapper(self, func)

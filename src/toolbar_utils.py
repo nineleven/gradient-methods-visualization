@@ -14,6 +14,21 @@ logger = get_logger(Path(__file__).name)
 def build_function(input_str: str) -> Tuple[Error,
                                             Optional[sympy.core.function.Function],
                                             Optional[Callable]]:
+    '''
+    Parses objective function from a given string
+
+    Parameters
+    ----------
+    input_str : str
+        Input string
+
+    Returns
+    -------
+    Tuple[Error, Optional[sympy.core.function.Function], Optional[Callable]]
+        Tuple of the error code, parsed sympy function and a callable version
+        of this function
+    '''
+    
     logger.debug('Building function')
 
     if ',' in input_str:
@@ -48,6 +63,20 @@ def build_function(input_str: str) -> Tuple[Error,
 
 
 def build_gradient(func: sympy.core.function.Function) -> Tuple[Error, Optional[Callable]]:
+    '''
+    Builds the gradient of the objective function
+
+    Parameters
+    ----------
+    func : sympy.core.function.Function
+        Function to differentiate
+
+    Returns
+    -------
+    Tuple[Error, Optional[Callable]]
+        Tuple of the error code and the gradient function
+    '''
+    
     logger.debug('Building gradient')
     
     try:
@@ -64,17 +93,3 @@ def build_gradient(func: sympy.core.function.Function) -> Tuple[Error, Optional[
     except ValueError:
         logger.warning('Unable to differentiate the function')
         return Error.UNABLE_TO_DIFFERENTIALE, None
-
-
-def get_error_message(err: Error) -> str:
-    if err == Error.OK:
-        assert False, 'There is no error!'
-        return 'OK'
-    if err == Error.SYNTAX:
-        return 'Syntax error'
-    if err == Error.GRAMMATICAL:
-        return 'Grammatic error'
-    if err == Error.UNABLE_TO_DIFFERENTIALE:
-        return 'Unable to differentiate the function'
-    return 'Unknown error'
-    
