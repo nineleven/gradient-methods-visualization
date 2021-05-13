@@ -4,8 +4,8 @@ from typing import Tuple, Callable, Sequence, Optional, List
 
 from pathlib import Path
 
-from utils import get_logger
-from errors import Error
+from .utils import get_logger
+from .errors import Error
 
 
 logger = get_logger(Path(__file__).name)

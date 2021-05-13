@@ -2,7 +2,7 @@ import numpy as np
 
 from typing import Dict, Callable, Sequence, Any, List, Tuple, Union
 
-from utils import CountCalls
+from .utils import CountCalls
 
 
 def __make_result_dict(*, x: np.ndarray,

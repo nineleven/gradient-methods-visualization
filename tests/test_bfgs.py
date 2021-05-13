@@ -1,7 +1,3 @@
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent))
-
 from typing import Any, Sequence
 
 import numpy as np

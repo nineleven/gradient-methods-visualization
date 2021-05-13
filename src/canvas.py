@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from utils import get_logger
+from .utils import get_logger
 
 
 logger = get_logger(Path(__file__).name)
