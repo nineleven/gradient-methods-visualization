@@ -1,5 +1,3 @@
-from typing import Any, Sequence
-
 import numpy as np
 
 from src.bfgs import bfgs
@@ -11,7 +9,7 @@ def test_quadratic() -> None:
     x0 = np.array([1, 1])
     epsilon = 1e-5
     res = bfgs(grad, x0, epsilon)
-    x = res['x'] # type: ignore
+    x = res['x']  # type: ignore
 
     assert np.linalg.norm(x) < 1e-3
 
@@ -22,6 +20,6 @@ def test_ravine() -> None:
     x0 = np.array([-40, 80])
     epsilon = 1e-5
     res = bfgs(grad, x0, epsilon)
-    x = res['x'] # type: ignore
+    x = res['x']  # type: ignore
 
     assert np.linalg.norm(x) < 1e-3

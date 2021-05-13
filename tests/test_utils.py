@@ -14,7 +14,7 @@ def test_countcalls_loop() -> None:
 
 def test_countcalls_args() -> None:
     @CountCalls
-    def f(a: float, b: float=4) -> float:
+    def f(a: float, b: float = 4) -> float:
         return a + b
 
     for i in range(10):

@@ -1,8 +1,10 @@
 import sympy
 
-from typing import Tuple, Callable, Sequence, Optional, List
+from typing import Tuple, Callable, Optional
 
 from pathlib import Path
+
+import numpy as np
 
 from .utils import get_logger
 from .errors import Error
@@ -13,7 +15,7 @@ logger = get_logger(Path(__file__).name)
 
 def build_function(input_str: str) -> Tuple[Error,
                                             Optional[sympy.core.function.Function],
-                                            Optional[Callable]]:
+                                            Optional[Callable[[np.ndarray], float]]]:
     '''
     Parses objective function from a given string
 
@@ -24,7 +26,7 @@ def build_function(input_str: str) -> Tuple[Error,
 
     Returns
     -------
-    Tuple[Error, Optional[sympy.core.function.Function], Optional[Callable]]
+    Tuple[Error, Optional[sympy.core.function.Function], Optional[Callable[[np.ndarray], float]]]]
         Tuple of the error code, parsed sympy function and a callable version
         of this function
     '''
@@ -50,7 +52,7 @@ def build_function(input_str: str) -> Tuple[Error,
             logger.warning('Unknown symbols used: ' + str(unknown_symbols))
             return Error.GRAMMATICAL, None, None
         
-        def func(x: Sequence[float]) -> float:
+        def func(x: np.ndarray) -> float:
             nonlocal func_sp
             func_eval = func_sp.subs('x', x[0]).subs('y', x[1]).evalf()
             return float(func_eval)
@@ -62,7 +64,7 @@ def build_function(input_str: str) -> Tuple[Error,
         return Error.SYNTAX, None, None
 
 
-def build_gradient(func: sympy.core.function.Function) -> Tuple[Error, Optional[Callable]]:
+def build_gradient(func: sympy.core.function.Function) -> Tuple[Error, Optional[Callable[[np.ndarray], np.ndarray]]]:
     '''
     Builds the gradient of the objective function
 
@@ -73,7 +75,7 @@ def build_gradient(func: sympy.core.function.Function) -> Tuple[Error, Optional[
 
     Returns
     -------
-    Tuple[Error, Optional[Callable]]
+    Tuple[Error, Optional[Callable[[np.ndarray], np.ndarray]]]]
         Tuple of the error code and the gradient function
     '''
     
@@ -83,10 +85,10 @@ def build_gradient(func: sympy.core.function.Function) -> Tuple[Error, Optional[
         grad_sp = sympy.Matrix([sympy.diff(func, 'x'),
                                 sympy.diff(func, 'y')])
 
-        def grad(x: Sequence[float]) -> List[float]:
+        def grad(x: np.ndarray) -> np.ndarray:
             nonlocal grad_sp
             grad_eval = grad_sp.subs('x', x[0]).subs('y', x[1]).evalf()
-            return list(map(float, grad_eval))
+            return np.array(list(map(float, grad_eval)))
 
         return Error.OK, grad
         

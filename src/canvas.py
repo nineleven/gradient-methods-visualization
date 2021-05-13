@@ -5,7 +5,7 @@ from matplotlib.backends.backend_qt5agg \
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
-from typing import Tuple, Sequence, Callable, List, Optional
+from typing import Tuple, Callable, Optional
 
 from pathlib import Path
 
@@ -35,16 +35,16 @@ class Canvas(QWidget):
         
         super().__init__()
 
-        self.margin_coef = DEFAULT_MARGIN_COEF # coeffitient, used to determine the limits of axes
-        self.num_levels = DEFAULT_NUM_LEVELS # number of contour lines
+        self.margin_coef = DEFAULT_MARGIN_COEF  # coeffitient, used to determine the limits of axes
+        self.num_levels = DEFAULT_NUM_LEVELS  # number of contour lines
         
         self.fig, self.ax = plt.subplots(1, 1)
         self.canvas = FigureCanvas(self.fig)
         
         self.history = np.array([])
         
-        self.function: Optional[Callable[[Sequence[float]], float]] = None
-        self.gradient: Optional[Callable[[Sequence[float]], List[float]]] = None
+        self.function: Optional[Callable[[np.ndarray], float]] = None
+        self.gradient: Optional[Callable[[np.ndarray], np.ndarray]] = None
 
         layout = QGridLayout()
         layout.addWidget(self.canvas)
@@ -127,7 +127,7 @@ class Canvas(QWidget):
 
         for row_n in range(X.shape[0]):
             for col_n in range(X.shape[1]):
-                point = [X[row_n][col_n], Y[row_n][col_n]]
+                point = np.array([X[row_n][col_n], Y[row_n][col_n]])
                 grad_x, grad_y = self.gradient(point)
                 
                 grad_norm = (grad_x**2 + grad_y**2)**0.5
@@ -160,7 +160,7 @@ class Canvas(QWidget):
 
         for row_n in range(X.shape[0]):
             for col_n in range(X.shape[1]):
-                point = [X[row_n][col_n], Y[row_n][col_n]]
+                point = np.array([X[row_n][col_n], Y[row_n][col_n]])
                 Z[row_n][col_n] = self.function(point)
                 
                 if not max_Z or Z[row_n][col_n] > max_Z:
@@ -196,8 +196,8 @@ class Canvas(QWidget):
         '''
         ignoring typing, because return types of matplotlib functions are not annotated
         '''
-        xs = np.linspace(*self.ax.get_xlim(), NUM_X_TICKS) # type: ignore
-        ys = np.linspace(*self.ax.get_ylim(), NUM_Y_TICKS) # type: ignore
+        xs = np.linspace(*self.ax.get_xlim(), NUM_X_TICKS)  # type: ignore
+        ys = np.linspace(*self.ax.get_ylim(), NUM_Y_TICKS)  # type: ignore
         X, Y = np.meshgrid(xs, ys)
 
         self.plot_gradient(X, Y)
@@ -207,7 +207,7 @@ class Canvas(QWidget):
         logger.debug('Drawing on canvas')
         self.canvas.draw()
 
-    def update_history(self, history: Sequence) -> None:
+    def update_history(self, history: np.ndarray) -> None:
         '''
         A setter function for the iteration history of the method
 
@@ -227,8 +227,8 @@ class Canvas(QWidget):
         
         self.history = history_np
 
-    def update_function(self, func: Callable[[Sequence[float]], float],
-                        grad: Callable[[Sequence[float]], List[float]]) -> None:
+    def update_function(self, func: Callable[[np.ndarray], float],
+                        grad: Callable[[np.ndarray], np.ndarray]) -> None:
         '''
         A setter function for the objective function and it's gradient
 

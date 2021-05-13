@@ -67,4 +67,4 @@ def test_build_function(case: BuildFunctionCase) -> None:
     err, func_sp, _ = build_function(case.input_string)
     assert err == case.error
     if err == Error.OK:
-        assert sympy.nsimplify(func_sp - case.func_sp) == 0 # type: ignore
+        assert sympy.nsimplify(func_sp - case.func_sp) == 0  # type: ignore

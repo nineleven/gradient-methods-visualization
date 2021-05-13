@@ -5,6 +5,8 @@ from PyQt5.QtCore import Qt, QLocale
 
 from pathlib import Path
 
+import numpy as np
+
 from .canvas import Canvas
 from .utils import get_logger
 from .bfgs import bfgs
@@ -45,9 +47,9 @@ class CanvasToolBar(QWidget):
         self.lbl_num_levels = QLabel(str(NUM_LEVELS_SLIDER_RANGE[0]))
         self.lbl_num_levels.setMinimumWidth(20)
         
-        self.sld_num_levels = QSlider(Qt.Horizontal) # type:ignore[attr-defined]
-        self.sld_num_levels.sliderReleased.connect(self.sld_released) # type:ignore[attr-defined]
-        self.sld_num_levels.valueChanged.connect(self.sld_value_changed) # type:ignore[attr-defined]
+        self.sld_num_levels = QSlider(Qt.Horizontal)  # type:ignore[attr-defined]
+        self.sld_num_levels.sliderReleased.connect(self.sld_released)  # type:ignore[attr-defined]
+        self.sld_num_levels.valueChanged.connect(self.sld_value_changed)  # type:ignore[attr-defined]
         self.sld_num_levels.setRange(*NUM_LEVELS_SLIDER_RANGE)
 
         num_levels_layout = QHBoxLayout()
@@ -62,7 +64,7 @@ class CanvasToolBar(QWidget):
         self.func_widget = QWidget()
         
         self.lbl_func = QLabel('f(x, y):')
-        self.lbl_func.setAlignment(Qt.AlignLeft | Qt.AlignVCenter) # type:ignore[attr-defined]
+        self.lbl_func.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)  # type:ignore[attr-defined]
         
         self.led_func = QLineEdit()
         self.led_func.setText(DEFAULT_FUNCTION)
@@ -104,7 +106,7 @@ class CanvasToolBar(QWidget):
         
         self.lbl_epsilon = QLabel('epsilon:')
         
-        epsilon_validator = QDoubleValidator(bottom=0.0) # type:ignore[call-overload]
+        epsilon_validator = QDoubleValidator(bottom=0.0)  # type:ignore[call-overload]
         epsilon_validator.setLocale(QLocale(QLocale.English))
         
         self.led_epsilon = QLineEdit()
@@ -119,15 +121,15 @@ class CanvasToolBar(QWidget):
         
         # run button
         self.btn_run = QPushButton('run')
-        self.btn_run.clicked.connect(self.btn_run_clicked) # type:ignore[attr-defined]
+        self.btn_run.clicked.connect(self.btn_run_clicked)  # type:ignore[attr-defined]
         
         layout = QVBoxLayout()
 
-        layout.addWidget(self.num_levels_widget, alignment=Qt.AlignTop) # type:ignore[attr-defined]
-        layout.addWidget(self.func_widget, alignment=Qt.AlignTop) # type:ignore[attr-defined]
-        layout.addWidget(self.init_approx_widget, alignment=Qt.AlignTop) # type:ignore[attr-defined]
-        layout.addWidget(self.epsilon_widget, alignment=Qt.AlignTop) # type:ignore[attr-defined]
-        layout.addWidget(self.btn_run, alignment=Qt.AlignTop) # type:ignore[attr-defined]
+        layout.addWidget(self.num_levels_widget, alignment=Qt.AlignTop)  # type:ignore[attr-defined]
+        layout.addWidget(self.func_widget, alignment=Qt.AlignTop)  # type:ignore[attr-defined]
+        layout.addWidget(self.init_approx_widget, alignment=Qt.AlignTop)  # type:ignore[attr-defined]
+        layout.addWidget(self.epsilon_widget, alignment=Qt.AlignTop)  # type:ignore[attr-defined]
+        layout.addWidget(self.btn_run, alignment=Qt.AlignTop)  # type:ignore[attr-defined]
 
         self.setLayout(layout)
 
@@ -161,7 +163,7 @@ class CanvasToolBar(QWidget):
             logger.debug('missing precision')
             return
 
-        x0 = [float(self.led_x0.text()), float(self.led_y0.text())]
+        x0 = np.array([float(self.led_x0.text()), float(self.led_y0.text())])
 
         epsilon = float(self.led_epsilon.text())
 
@@ -174,6 +176,8 @@ class CanvasToolBar(QWidget):
                 QMessageBox.Ok
             )
             return
+
+        assert func is not None
         
         err, grad = build_gradient(func_sympy)
         if not grad:
@@ -185,7 +189,9 @@ class CanvasToolBar(QWidget):
             )
             return
 
-        _, history = bfgs(grad, x0, epsilon, return_history=True)
+        assert grad is not None
+
+        _, history = bfgs(grad, x0, epsilon)
 
         self.canvas.update_history(history)
         self.canvas.update_function(func, grad)

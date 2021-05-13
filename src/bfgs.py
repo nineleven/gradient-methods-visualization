@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Dict, Callable, Sequence, Any, List, Tuple, Union
+from typing import Dict, Callable, Any, List, Tuple
 
 from .utils import CountCalls
 
@@ -112,8 +112,8 @@ def __optimize(grad_f: Callable[[np.ndarray], np.ndarray],
 
 
 def bfgs(grad_f: Callable[[np.ndarray], np.ndarray],
-         x_0: np.ndarray, epsilon: float, alpha: float=1,
-         return_history: bool=False) -> Union[Dict['str', Any], Tuple[Dict['str', Any], np.ndarray]]:
+         x_0: np.ndarray, epsilon: float, alpha: float = 1) -> Tuple[Dict['str', Any],
+                                                                     np.ndarray]:
     '''
     Computes new approximation of the inverse of hessian.
     The notation the same as here https://ru.wikipedia.org/wiki/Алгоритм_Бройдена_—_Флетчера_—_Гольдфарба_—_Шанно
@@ -128,13 +128,11 @@ def bfgs(grad_f: Callable[[np.ndarray], np.ndarray],
         Desired precision
     alpha : float
         Step of the algirithm
-    return_history : bool
-        Whether to return the history
 
     Returns
     -------
-    Union[Dict['str', Any], Tuple[Dict['str', Any], numpyp.ndarray]]
-        Result dictionary or a tuple of the result dictionary and the history
+    Tuple[Dict['str', Any], numpyp.ndarray]
+        Tuple of the result dictionary and the history
         
     '''
     
@@ -152,7 +150,4 @@ def bfgs(grad_f: Callable[[np.ndarray], np.ndarray],
         success=True
     )
 
-    if return_history:
-        return result_dict, history
-
-    return result_dict
+    return result_dict, history
