@@ -19,7 +19,7 @@ def test_ravine() -> None:
         return np.array([2 * x[0], 120 * x[1]])
     x0 = np.array([-40, 80])
     epsilon = 1e-5
-    res = bfgs(grad, x0, epsilon)
+    res, _ = bfgs(grad, x0, epsilon)
     x = res['x']  # type: ignore
 
     assert np.linalg.norm(x) < 1e-3
