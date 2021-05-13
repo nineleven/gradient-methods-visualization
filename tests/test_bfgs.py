@@ -8,7 +8,7 @@ def test_quadratic() -> None:
         return 2 * x
     x0 = np.array([1, 1])
     epsilon = 1e-5
-    res = bfgs(grad, x0, epsilon)
+    res, _ = bfgs(grad, x0, epsilon)
     x = res['x']  # type: ignore
 
     assert np.linalg.norm(x) < 1e-3
