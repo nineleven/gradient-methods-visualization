@@ -1,0 +1,8 @@
+pyqt5
+numpy
+sympy
+pathlib
+matplotlib
+pytest
+flake8
+mypy
